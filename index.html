@@ -12,7 +12,7 @@ body{background:#f5f5f3;color:#1a1a18}
 h1{font-size:20px;font-weight:600}
 .sub{font-size:13px;color:#73726c;margin-top:3px}
 .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:1.25rem 0}
-select{width:100%;padding:9px 14px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;font-size:13px}
+select{width:100%;padding:9px 14px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;font-size:13px;cursor:pointer}
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:1.25rem 0}
 .met{background:#fff;border-radius:10px;padding:16px 18px;border:1px solid #e8e7e0}
 .met-lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#73726c}
@@ -31,7 +31,7 @@ tbody td{padding:10px;border-bottom:1px solid #f1f0e8;vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
 .stars{display:flex;gap:3px}
 .star{width:14px;height:14px;border-radius:3px}
-.status-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#EAF3DE;border-radius:8px;margin-bottom:1rem;font-size:12px;color:#3B6D11}
+.sb{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#EAF3DE;border-radius:8px;margin-bottom:1rem;font-size:12px;color:#3B6D11}
 .dot{width:8px;height:8px;border-radius:50%;background:#3B6D11;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @media(max-width:700px){.metrics{grid-template-columns:1fr 1fr}.charts{grid-template-columns:1fr}}
@@ -40,7 +40,7 @@ tbody tr:last-child td{border-bottom:none}
 <body>
 <div class="page">
 <div style="margin-bottom:1rem"><h1>Dashboard de prospeccao - Intermodal 2026</h1><p class="sub">Geonexus + Lead Gestao Fundiaria - Sao Paulo, SP</p></div>
-<div class="status-bar"><span class="dot"></span><span id="st">Carregando...</span><span style="font-size:11px;margin-left:auto" id="lu"></span></div>
+<div class="sb"><span class="dot"></span><span id="st">Carregando dados...</span><span style="font-size:11px;margin-left:auto" id="lu"></span></div>
 <div class="filters">
 <select id="ft" onchange="render()"><option value="">Temperatura (todas)</option><option value="3">3 estrelas</option><option value="2">2 estrelas</option><option value="1">1 estrela</option></select>
 <select id="fs" onchange="render()"><option value="">Segmento (todos)</option></select>
@@ -48,7 +48,7 @@ tbody tr:last-child td{border-bottom:none}
 <select id="fdia" onchange="render()"><option value="">Dia do evento (todos)</option><option value="14">Dia 1 - 14/04</option><option value="15">Dia 2 - 15/04</option><option value="16">Dia 3 - 16/04</option></select>
 </div>
 <div class="metrics">
-<div class="met"><p class="met-lbl">Contatos captados</p><p class="met-val" id="m1">-</p><p class="met-sub" style="color:#3B6D11" id="m1s"></p></div>
+<div class="met"><p class="met-lbl">Contatos captados</p><p class="met-val" id="m1">-</p></div>
 <div class="met"><p class="met-lbl">Empresas unicas</p><p class="met-val" id="m2">-</p></div>
 <div class="met"><p class="met-lbl">Leads quentes (3 estrelas)</p><p class="met-val" id="m3">-</p><p class="met-sub" style="color:#185FA5" id="m3s"></p></div>
 <div class="met"><p class="met-lbl">Temperatura media</p><p class="met-val" id="m4">-</p><p class="met-sub" style="color:#73726c">meta: 3 estrelas</p></div>
@@ -68,25 +68,23 @@ tbody tr:last-child td{border-bottom:none}
 </div>
 </div>
 <script>
-var ID='e5b54b8012b7408aad923b11a127af3b';
-var TK='SEU_TOKEN_ARCGIS_AQUI';
 var IL={rodoviaria:'Rodovias',ferroviaria:'Ferroviario',aeroportuaria:'Aeroportos',energia:'Energia',oleo_gas:'Oleo e Gas',portuaria:'Portuario',construcao_civil:'Construcao Civil',tecnologia:'Tecnologia',esg:'ESG',logistica:'Logistica',outros:'Outros'};
 var DL={'Faixa_de_Dominio':'Faixa de Dominio','Gestao_Fundiaria':'Gestao Fundiaria',BI:'BI','GEO/BIM':'GEO/BIM','Gestao_e_Monitoramento_de_Ativo':'Gest. Ativos','Avaliacao':'Avaliacao',outros:'Outros'};
 var SC={3:'#D85A30',2:'#EF9F27',1:'#B4B2A9'};
 var CH={},DATA=[];
-function err(m){var s=document.querySelector('.status-bar');document.getElementById('st').textContent='Erro: '+m;s.style.background='#FCEBEB';s.style.color='#A32D2D';document.querySelector('.dot').style.background='#A32D2D';}
+function setErr(m){var s=document.querySelector('.sb');s.style.background='#FCEBEB';s.style.color='#A32D2D';document.querySelector('.dot').style.background='#A32D2D';document.getElementById('st').textContent=m;}
 async function load(){
-if(TK==='SEU_TOKEN_ARCGIS_AQUI'){err('Configure o token ArcGIS no arquivo');return;}
 try{
-var r1=await fetch('https://www.arcgis.com/sharing/rest/content/items/'+ID+'?f=json&token='+TK);
-var i1=await r1.json();if(i1.error)throw new Error(i1.error.message);
-var r2=await fetch(i1.url+'/0/query?where=1%3D1&outFields=*&f=json&token='+TK+'&resultRecordCount=2000');
-var q=await r2.json();if(q.error)throw new Error(q.error.message);
-DATA=q.features.map(function(f){return f.attributes;});
+var r=await fetch('data.json?t='+Date.now());
+if(!r.ok)throw new Error('Aguardando GitHub Action gerar data.json (status '+r.status+')');
+var q=await r.json();
+if(q.error)throw new Error('ArcGIS erro: '+q.error.message);
+DATA=(q.features||[]).map(function(f){return f.attributes;});
 fillF();render();
+var sb=document.querySelector('.sb');sb.style.background='#EAF3DE';sb.style.color='#3B6D11';document.querySelector('.dot').style.background='#3B6D11';
 document.getElementById('st').textContent=DATA.length+' respostas carregadas';
 document.getElementById('lu').textContent='Atualizado: '+new Date().toLocaleString('pt-BR');
-}catch(e){err(e.message);}
+}catch(e){setErr(e.message);}
 }
 function fillF(){
 var ss=[...new Set(DATA.flatMap(function(r){return(r.interesse_principal||'').split(' ');}).map(function(k){return IL[k];}).filter(Boolean))];
@@ -114,7 +112,7 @@ function st(n){var c=SC[n]||'#D3D1C7';return '<div class="stars">'+[1,2,3].map(f
 function render(){
 var d=filt(),tot=d.length;
 document.getElementById('m1').textContent=tot;
-document.getElementById('m2').textContent=new Set(d.map(function(r){return r.nome_e_empresa_informe_seu_nome||'';})).size;
+document.getElementById('m2').textContent=new Set(d.map(function(r){return r.nome_e_empresa_informe_seu_nome||'';})).size||0;
 var q=d.filter(function(r){return Number(r.temperatura_estrelas_avalie_seu)===3;}).length;
 document.getElementById('m3').textContent=q;
 document.getElementById('m3s').textContent=tot?Math.round(q/tot*100)+'% do total':'';
@@ -134,7 +132,8 @@ mk('c4','bar',Object.keys(dias),Object.values(dias),['#7F77DD','#AFA9EC','#CECBF
 var rec=d.slice().reverse().slice(0,10);
 document.getElementById('tb').innerHTML=rec.length?rec.map(function(r){return'<tr><td style="font-weight:500">'+(r.nome||'-')+'</td><td style="color:#73726c">'+(r.nome_e_empresa_informe_seu_nome||'-')+'</td><td>'+((r.interesse_principal||'').split(' ').slice(0,1).map(function(k){return IL[k]||k;}).join('')||'-')+'</td><td>'+((r.principal_dor||'').split(' ').slice(0,1).map(function(k){return DL[k]||k;}).join('')||'-')+'</td><td>'+st(Number(r.temperatura_estrelas_avalie_seu))+'</td><td>'+(r.estado||'-')+'</td></tr>';}).join(''):'<tr><td colspan="6" style="text-align:center;padding:2rem;color:#73726c">Sem resultados</td></tr>';
 }
-load();setInterval(load,60000);
+load();
+setInterval(load,60000);
 </script>
 </body>
 </html>

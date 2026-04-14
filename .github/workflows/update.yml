@@ -19,11 +19,8 @@ jobs:
         env:
           API_KEY: ${{ secrets.ARCGIS_TOKEN }}
         run: |
-          ITEM_ID="9fdd86b885a84f7faf0b6434bc626ccd"
-          SVC_URL=$(curl -s "https://www.arcgis.com/sharing/rest/content/items/${ITEM_ID}?f=json&token=${API_KEY}" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin)['url'])")
-          curl -s "${SVC_URL}/0/query?where=1%3D1&outFields=*&f=json&token=${API_KEY}&resultRecordCount=2000" -o data.json
-          echo "Total: $(python3 -c "import json; print(len(json.load(open('data.json')).get('features',[])))")"
+          curl -s "https://services3.arcgis.com/ba17q0p2zHwzRK3B/arcgis/rest/services/survey123_08566a11039c49e38326d98785c0ee7e_results/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&token=${API_KEY}&resultRecordCount=2000" -o data.json
+          python3 -c "import json; d=json.load(open('data.json')); print('Total:', len(d.get('features',d.get('error',{}))))"
 
       - name: Commit data.json
         run: |

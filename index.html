@@ -5,224 +5,487 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Geonexus Intermodal 2026</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
 body{background:#f5f5f3;color:#1a1a18}
 .page{max-width:1100px;margin:0 auto;padding:1.5rem 1rem 3rem}
 h1{font-size:20px;font-weight:600}
 .sub{font-size:13px;color:#73726c;margin-top:3px}
-
-.sb{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#EAF3DE;border-radius:8px;margin-bottom:1rem;font-size:12px;color:#3B6D11;flex-wrap:wrap}
-.dot{width:8px;height:8px;border-radius:50%;background:#3B6D11}
-
-button{
-  padding:8px 12px;
-  border:1px solid #cfcdbf;
-  background:#fff;
-  border-radius:8px;
-  font-size:12px;
-  cursor:pointer;
-}
-
 .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:1.25rem 0}
-
+select{width:100%;padding:9px 14px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;font-size:13px;cursor:pointer}
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:1.25rem 0}
-
-.met{background:#fff;border-radius:10px;padding:16px;border:1px solid #e8e7e0}
-.met-val{font-size:26px}
-
-.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-
-.card{background:#fff;border:1px solid #e8e7e0;border-radius:12px;padding:1rem}
-
-.tbl-card{background:#fff;border:1px solid #e8e7e0;border-radius:12px;padding:1rem;margin-top:14px}
-
-table{width:100%;border-collapse:collapse}
-td,th{padding:8px;border-bottom:1px solid #eee}
-
+.met{background:#fff;border-radius:10px;padding:16px 18px;border:1px solid #e8e7e0}
+.met-lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#73726c}
+.met-val{font-size:28px;font-weight:600;margin-top:5px}
+.met-sub{font-size:12px;margin-top:5px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.card{background:#fff;border:1px solid #e8e7e0;border-radius:12px;padding:1.1rem 1.25rem}
+.ct{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#73726c;margin-bottom:10px}
+.leg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px}
+.leg span{display:flex;align-items:center;gap:5px;font-size:11px;color:#73726c}
+.leg i{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.tbl-card{background:#fff;border:1px solid #e8e7e0;border-radius:12px;padding:1.1rem 1.25rem;margin-top:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:11px;font-weight:600;color:#73726c;text-align:left;padding:6px 10px;border-bottom:1px solid #e8e7e0;text-transform:uppercase}
+tbody td{padding:10px;border-bottom:1px solid #f1f0e8;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+.stars{display:flex;gap:3px}
+.star{width:14px;height:14px;border-radius:3px}
+.sb{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#EAF3DE;border-radius:8px;margin-bottom:1rem;font-size:12px;color:#3B6D11}
+.dot{width:8px;height:8px;border-radius:50%;background:#3B6D11;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @media(max-width:700px){
-.metrics{grid-template-columns:1fr 1fr}
-.charts{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr 1fr}
+  .charts{grid-template-columns:1fr}
 }
 </style>
 </head>
-
 <body>
 <div class="page">
+  <div style="margin-bottom:1rem">
+    <h1>Dashboard de prospecção - Intermodal 2026</h1>
+    <p class="sub">Geonexus + Lead Gestão Fundiária - São Paulo, SP</p>
+  </div>
 
-<h1>Dashboard Intermodal 2026</h1>
-<p class="sub">Geonexus + Lead Gestão Fundiária</p>
+  <div class="sb">
+    <span class="dot"></span>
+    <span id="st">Carregando dados...</span>
+    <span style="font-size:11px;margin-left:auto" id="lu"></span>
+  </div>
 
-<div class="sb">
-  <span class="dot"></span>
-  <span id="st">Carregando dados...</span>
-  <span style="margin-left:auto;font-size:11px" id="lu"></span>
+  <div class="filters">
+    <select id="ft" onchange="render()">
+      <option value="">Temperatura (todas)</option>
+      <option value="3">3 estrelas</option>
+      <option value="2">2 estrelas</option>
+      <option value="1">1 estrela</option>
+    </select>
 
-  <button id="btnRefresh" onclick="manualRefresh()">
-    Atualizar agora
-  </button>
-</div>
+    <select id="fs" onchange="render()">
+      <option value="">Interesse (todos)</option>
+    </select>
 
-<div class="metrics">
-<div class="met"><p>Total</p><p id="m1" class="met-val">-</p></div>
-<div class="met"><p>Empresas</p><p id="m2" class="met-val">-</p></div>
-<div class="met"><p>Leads quentes</p><p id="m3" class="met-val">-</p></div>
-<div class="met"><p>Média</p><p id="m4" class="met-val">-</p></div>
-</div>
+    <select id="fd" onchange="render()">
+      <option value="">Dor principal (todas)</option>
+    </select>
 
-<div class="charts">
-<div class="card"><canvas id="c1"></canvas></div>
-<div class="card"><canvas id="c2"></canvas></div>
-<div class="card"><canvas id="c3"></canvas></div>
-<div class="card"><canvas id="c4"></canvas></div>
-</div>
+    <select id="fdia" onchange="render()">
+      <option value="">Dia do evento (todos)</option>
+      <option value="14">Dia 1 - 14/04</option>
+      <option value="15">Dia 2 - 15/04</option>
+      <option value="16">Dia 3 - 16/04</option>
+    </select>
+  </div>
 
-<div class="tbl-card">
-<table>
-<thead>
-<tr>
-<th>Nome</th>
-<th>Empresa</th>
-<th>Interesses</th>
-<th>Dores</th>
-<th>Temp</th>
-</tr>
-</thead>
-<tbody id="tb"></tbody>
-</table>
-</div>
+  <div class="metrics">
+    <div class="met">
+      <p class="met-lbl">Contatos captados</p>
+      <p class="met-val" id="m1">-</p>
+    </div>
+    <div class="met">
+      <p class="met-lbl">Empresas únicas</p>
+      <p class="met-val" id="m2">-</p>
+    </div>
+    <div class="met">
+      <p class="met-lbl">Leads quentes (3 estrelas)</p>
+      <p class="met-val" id="m3">-</p>
+      <p class="met-sub" style="color:#185FA5" id="m3s"></p>
+    </div>
+    <div class="met">
+      <p class="met-lbl">Temperatura média</p>
+      <p class="met-val" id="m4">-</p>
+      <p class="met-sub" style="color:#73726c">meta: 3 estrelas</p>
+    </div>
+  </div>
 
+  <div class="charts">
+    <div class="card">
+      <p class="ct">Interesse principal</p>
+      <div class="leg" style="margin-bottom:8px">
+        <span><i style="background:#378ADD"></i>Contatos</span>
+      </div>
+      <div style="position:relative;width:100%;height:260px">
+        <canvas id="c1" role="img" aria-label="Interesse">.</canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="ct">Temperatura dos leads</p>
+      <div class="leg" id="lt" style="margin-bottom:8px"></div>
+      <div style="position:relative;width:100%;height:260px">
+        <canvas id="c2" role="img" aria-label="Temperatura">.</canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="ct">Principal dor</p>
+      <div class="leg" style="margin-bottom:8px">
+        <span><i style="background:#1D9E75"></i>Contatos</span>
+      </div>
+      <div style="position:relative;width:100%;height:260px">
+        <canvas id="c3" role="img" aria-label="Dor">.</canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="ct">Captações por dia</p>
+      <div class="leg" style="margin-bottom:8px">
+        <span><i style="background:#7F77DD"></i>Por dia</span>
+      </div>
+      <div style="position:relative;width:100%;height:260px">
+        <canvas id="c4" role="img" aria-label="Dia">.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="tbl-card">
+    <p class="ct" style="margin-bottom:12px">Leads recentes</p>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Empresa</th>
+            <th>Interesses</th>
+            <th>Dores</th>
+            <th>Temperatura</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tb">
+          <tr>
+            <td colspan="6" style="text-align:center;padding:2rem;color:#73726c">Carregando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <script>
-
-var DATA=[];
-var CH={};
-
-var IL={
+var IL = {
+  rodoviaria:'Rodovias',
   ferroviaria:'Ferroviário',
   aeroportuaria:'Aeroportuário',
   energia:'Energia',
-  oleo_gas:'Óleo e Gás'
+  oleo_gas:'Óleo e Gás',
+  portuaria:'Portuário',
+  construcao_civil:'Construção Civil',
+  tecnologia:'Tecnologia',
+  esg:'ESG',
+  logistica:'Logística',
+  outros:'Outros'
 };
 
-var DL={
-  Faixa_de_Dominio:'Faixa de Domínio',
-  Gestao_Fundiaria:'Gestão Fundiária'
+var DL = {
+  'Faixa_de_Dominio':'Faixa de Domínio',
+  'Gestao_Fundiaria':'Gestão Fundiária',
+  BI:'BI',
+  'GEO/BIM':'GEO/BIM',
+  'Gestao_e_Monitoramento_de_Ativo':'Gestão e Monitoramento de Ativo',
+  'Avaliacao':'Avaliação',
+  outros:'Outros'
 };
 
-function normList(v){
-  if(!v) return [];
-  return v.split(',').map(x=>x.trim()).filter(Boolean);
+var SC = {
+  3:'#D85A30',
+  2:'#EF9F27',
+  1:'#B4B2A9'
+};
+
+var CH = {};
+var DATA = [];
+
+function setErr(m){
+  var s = document.querySelector('.sb');
+  s.style.background = '#FCEBEB';
+  s.style.color = '#A32D2D';
+  document.querySelector('.dot').style.background = '#A32D2D';
+  document.getElementById('st').textContent = m;
 }
 
-function manualRefresh(){
-  var btn=document.getElementById('btnRefresh');
-  btn.disabled=true;
-  btn.textContent="Atualizando...";
+function normList(v){
+  return (v || '')
+    .split(',')
+    .map(function(x){ return x.trim(); })
+    .filter(Boolean);
+}
 
-  load().finally(()=>{
-    btn.disabled=false;
-    btn.textContent="Atualizar agora";
-  });
+function mapAlias(list, dict){
+  return list.map(function(k){ return dict[k] || k; });
 }
 
 async function load(){
   try{
-    var r=await fetch('data.json?t='+Date.now());
-    var q=await r.json();
+    var r = await fetch('data.json?t=' + Date.now());
+    if(!r.ok) throw new Error('Aguardando GitHub Action gerar data.json (status ' + r.status + ')');
 
-    DATA=(q.features||[]).map(f=>f.attributes);
+    var q = await r.json();
+    if(q.error) throw new Error('ArcGIS erro: ' + q.error.message);
 
+    DATA = (q.features || []).map(function(f){ return f.attributes; });
+
+    fillF();
     render();
 
-    document.getElementById('st').textContent=DATA.length+" respostas";
-    document.getElementById('lu').textContent=new Date().toLocaleTimeString();
+    var sb = document.querySelector('.sb');
+    sb.style.background = '#EAF3DE';
+    sb.style.color = '#3B6D11';
+    document.querySelector('.dot').style.background = '#3B6D11';
 
+    document.getElementById('st').textContent = DATA.length + ' respostas carregadas';
+    document.getElementById('lu').textContent = 'Atualizado: ' + new Date().toLocaleString('pt-BR');
   }catch(e){
-    document.getElementById('st').textContent="Erro ao carregar";
+    setErr(e.message);
   }
 }
 
-function countMulti(field,map){
-  var c={};
+function fillF(){
+  var interesses = [...new Set(
+    DATA.flatMap(function(r){
+      return mapAlias(normList(r.interesse_principal), IL);
+    })
+  )].sort();
 
-  DATA.forEach(r=>{
-    normList(r[field]).forEach(k=>{
-      var l=map[k]||k;
-      c[l]=(c[l]||0)+1;
-    });
+  var dores = [...new Set(
+    DATA.flatMap(function(r){
+      return mapAlias(normList(r.principal_dor), DL);
+    })
+  )].sort();
+
+  var sf = document.getElementById('fs');
+  sf.innerHTML = '<option value="">Interesse (todos)</option>';
+  interesses.forEach(function(s){
+    var o = document.createElement('option');
+    o.value = s;
+    o.textContent = s;
+    sf.appendChild(o);
   });
 
-  return c;
+  var df = document.getElementById('fd');
+  df.innerHTML = '<option value="">Dor principal (todas)</option>';
+  dores.forEach(function(d){
+    var o = document.createElement('option');
+    o.value = d;
+    o.textContent = d;
+    df.appendChild(o);
+  });
+}
+
+function filt(){
+  var t = document.getElementById('ft').value;
+  var s = document.getElementById('fs').value;
+  var d = document.getElementById('fd').value;
+  var dia = document.getElementById('fdia').value;
+
+  return DATA.filter(function(r){
+    if(t && String(r.temperatura_estrelas_avalie_seu) !== t) return false;
+
+    var interesses = mapAlias(normList(r.interesse_principal), IL);
+    if(s && !interesses.includes(s)) return false;
+
+    var dores = mapAlias(normList(r.principal_dor), DL);
+    if(d && !dores.includes(d)) return false;
+
+    if(dia && new Date(r.CreationDate || 0).getDate() !== Number(dia)) return false;
+
+    return true;
+  });
+}
+
+function cM(rows, field, labelMap){
+  var c = {};
+  rows.forEach(function(r){
+    normList(r[field]).forEach(function(k){
+      var label = labelMap[k] || k;
+      c[label] = (c[label] || 0) + 1;
+    });
+  });
+  return Object.entries(c).sort(function(a,b){ return b[1] - a[1]; });
+}
+
+function cS(rows, field){
+  var c = {};
+  rows.forEach(function(r){
+    var v = r[field];
+    if(v !== undefined && v !== null && v !== ''){
+      c[v] = (c[v] || 0) + 1;
+    }
+  });
+  return Object.entries(c).sort(function(a,b){ return b[1] - a[1]; });
+}
+
+function mk(id, type, labels, data, colors, ex){
+  ex = ex || {};
+  if(CH[id]) CH[id].destroy();
+
+  CH[id] = new Chart(document.getElementById(id), {
+    type: type,
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: colors,
+        borderRadius: type === 'bar' ? 3 : 0,
+        borderWidth: type === 'doughnut' ? 2 : 0,
+        borderColor: '#fff'
+      }]
+    },
+    options: Object.assign({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      indexAxis: type === 'bar' && labels.length > 4 ? 'y' : 'x'
+    }, ex)
+  });
+}
+
+function st(n){
+  var c = SC[n] || '#D3D1C7';
+  return '<div class="stars">' + [1,2,3].map(function(i){
+    return '<span class="star" style="background:' + (i <= n ? c : '#E8E7E0') + '"></span>';
+  }).join('') + '</div>';
 }
 
 function render(){
+  var d = filt();
+  var tot = d.length;
 
-  document.getElementById('m1').textContent=DATA.length;
+  document.getElementById('m1').textContent = tot;
 
-  document.getElementById('m2').textContent=
-    new Set(DATA.map(r=>r.nome_e_empresa_informe_seu_nome)).size;
+  var empresas = new Set(
+    d.map(function(r){
+      return (r.nome_e_empresa_informe_seu_nome || '').trim();
+    }).filter(Boolean)
+  );
+  document.getElementById('m2').textContent = empresas.size;
 
-  var quente=DATA.filter(r=>Number(r.temperatura_estrelas_avalie_seu)==3).length;
-  document.getElementById('m3').textContent=quente;
+  var q = d.filter(function(r){
+    return Number(r.temperatura_estrelas_avalie_seu) === 3;
+  }).length;
+  document.getElementById('m3').textContent = q;
+  document.getElementById('m3s').textContent = tot ? Math.round(q / tot * 100) + '% do total' : '';
 
-  var media=DATA.map(r=>Number(r.temperatura_estrelas_avalie_seu))
-    .reduce((a,b)=>a+b,0)/DATA.length;
-
-  document.getElementById('m4').textContent=media.toFixed(1);
-
-  var i=countMulti('interesse_principal',IL);
-  draw('c1',i,'bar','#378ADD');
-
-  var d=countMulti('principal_dor',DL);
-  draw('c3',d,'bar','#1D9E75');
-
-  var t={1:0,2:0,3:0};
-  DATA.forEach(r=>t[r.temperatura_estrelas_avalie_seu]++);
-  draw('c2',t,'doughnut',['#ccc','#f90','#f30']);
-
-  var dias={'Dia1':0,'Dia2':0,'Dia3':0};
-  DATA.forEach(r=>{
-    var d=new Date(r.CreationDate).getDate();
-    if(d==14)dias.Dia1++;
-    if(d==15)dias.Dia2++;
-    if(d==16)dias.Dia3++;
+  var ts = d.map(function(r){
+    return Number(r.temperatura_estrelas_avalie_seu);
+  }).filter(function(v){
+    return v > 0;
   });
-  draw('c4',dias,'bar','#7F77DD');
 
-  document.getElementById('tb').innerHTML=
-    DATA.slice().reverse().slice(0,10).map(r=>`
-      <tr>
-        <td>${r.nome||''}</td>
-        <td>${r.nome_e_empresa_informe_seu_nome||''}</td>
-        <td>${normList(r.interesse_principal).map(x=>IL[x]||x).join(', ')}</td>
-        <td>${normList(r.principal_dor).map(x=>DL[x]||x).join(', ')}</td>
-        <td>${r.temperatura_estrelas_avalie_seu}</td>
-      </tr>
-    `).join('');
-}
+  document.getElementById('m4').textContent = ts.length
+    ? (Math.round(ts.reduce(function(a,b){ return a + b; }, 0) / ts.length * 10) / 10) + ' est.'
+    : '-';
 
-function draw(id,obj,type,color){
-  if(CH[id]) CH[id].destroy();
+  var ie = cM(d, 'interesse_principal', IL);
+  mk(
+    'c1',
+    'bar',
+    ie.map(function(x){ return x[0]; }),
+    ie.map(function(x){ return x[1]; }),
+    ie.map(function(){ return '#378ADD'; }),
+    {
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color:'rgba(0,0,0,0.05)' },
+          ticks: { font:{ size:11 } }
+        },
+        y: {
+          ticks: { font:{ size:11 } }
+        }
+      }
+    }
+  );
 
-  CH[id]=new Chart(document.getElementById(id),{
-    type:type,
-    data:{
-      labels:Object.keys(obj),
-      datasets:[{
-        data:Object.values(obj),
-        backgroundColor:Array.isArray(color)?color:Object.keys(obj).map(()=>color)
-      }]
-    },
-    options:{responsive:true}
+  var tmap = {1:'1 est.', 2:'2 est.', 3:'3 est.'};
+  var te = cS(d, 'temperatura_estrelas_avalie_seu').map(function(kv){
+    return [tmap[kv[0]] || kv[0], kv[1], SC[Number(kv[0])] || '#ccc'];
   });
+
+  mk(
+    'c2',
+    'doughnut',
+    te.map(function(x){ return x[0]; }),
+    te.map(function(x){ return x[1]; }),
+    te.map(function(x){ return x[2]; }),
+    { cutout:'58%' }
+  );
+
+  document.getElementById('lt').innerHTML = te.map(function(x){
+    return '<span><i style="background:' + x[2] + '"></i>' + x[0] + ' (' + x[1] + ')</span>';
+  }).join('');
+
+  var de = cM(d, 'principal_dor', DL);
+  mk(
+    'c3',
+    'bar',
+    de.map(function(x){ return x[0]; }),
+    de.map(function(x){ return x[1]; }),
+    de.map(function(){ return '#1D9E75'; }),
+    {
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color:'rgba(0,0,0,0.05)' },
+          ticks: { font:{ size:11 } }
+        },
+        y: {
+          ticks: { font:{ size:11 } }
+        }
+      }
+    }
+  );
+
+  var dias = {'Dia 1':0, 'Dia 2':0, 'Dia 3':0};
+  d.forEach(function(r){
+    var dt = new Date(r.CreationDate || 0).getDate();
+    if(dt === 14) dias['Dia 1']++;
+    else if(dt === 15) dias['Dia 2']++;
+    else if(dt === 16) dias['Dia 3']++;
+  });
+
+  mk(
+    'c4',
+    'bar',
+    Object.keys(dias),
+    Object.values(dias),
+    ['#7F77DD','#AFA9EC','#CECBF6'],
+    {
+      scales: {
+        x: {
+          grid: { color:'rgba(0,0,0,0.05)' },
+          ticks: { font:{ size:11 } }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { font:{ size:11 } }
+        }
+      }
+    }
+  );
+
+  var rec = d.slice().reverse().slice(0,10);
+  document.getElementById('tb').innerHTML = rec.length
+    ? rec.map(function(r){
+        var interessesTxt = mapAlias(normList(r.interesse_principal), IL).join(', ') || '-';
+        var doresTxt = mapAlias(normList(r.principal_dor), DL).join(', ') || '-';
+
+        return '<tr>' +
+          '<td style="font-weight:500">' + (r.nome || '-') + '</td>' +
+          '<td style="color:#73726c">' + (r.nome_e_empresa_informe_seu_nome || '-') + '</td>' +
+          '<td>' + interessesTxt + '</td>' +
+          '<td>' + doresTxt + '</td>' +
+          '<td>' + st(Number(r.temperatura_estrelas_avalie_seu)) + '</td>' +
+          '<td>' + (r.estado || '-') + '</td>' +
+        '</tr>';
+      }).join('')
+    : '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#73726c">Sem resultados</td></tr>';
 }
 
 load();
-setInterval(load,60000);
-
+setInterval(load, 60000);
 </script>
 </body>
 </html>

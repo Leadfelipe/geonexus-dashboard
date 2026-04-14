@@ -18,7 +18,7 @@ jobs:
         run: |
           curl -s "https://services3.arcgis.com/ba17q0p2zHwzRK3B/arcgis/rest/services/survey123_08566a11039c49e38326d98785c0ee7e_results/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=2000" -o data.json
 
-          echo "Primeiras linhas do retorno:"
+          echo "Primeiros 500 caracteres:"
           head -c 500 data.json
           echo
 
@@ -27,6 +27,15 @@ jobs:
             cat data.json
             exit 1
           fi
+
+      - name: Mostrar quantidade de registros
+        run: |
+          python - <<'PY'
+          import json
+          with open("data.json", "r", encoding="utf-8") as f:
+              data = json.load(f)
+          print("Total de features:", len(data.get("features", [])))
+          PY
 
       - name: Commit data.json
         run: |

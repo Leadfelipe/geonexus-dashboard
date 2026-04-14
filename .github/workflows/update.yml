@@ -1,0 +1,33 @@
+name: Update Survey Data
+
+on:
+  repository_dispatch:
+      types: [survey_submitted]
+        schedule:
+            - cron: '*/5 * * * *'
+              workflow_dispatch:
+
+              jobs:
+                update:
+                    runs-on: ubuntu-latest
+                        permissions:
+                              contents: write
+                                  steps:
+                                        - uses: actions/checkout@v4
+
+                                              - name: Fetch ArcGIS data
+                                                      env:
+                                                                ARCGIS_TOKEN: ${{ secrets.ARCGIS_TOKEN }}
+                                                                        run: |
+                                                                                  ITEM_ID="e5b54b8012b7408aad923b11a127af3b"
+                                                                                            SVC_URL=$(curl -s "https://www.arcgis.com/sharing/rest/content/items/${ITEM_ID}?f=json&token=${ARCGIS_TOKEN}" | python3 -c "import sys,json; print(json.load(sys.stdin)['url'])")
+                                                                                                      curl -s "${SVC_URL}/0/query?where=1%3D1&outFields=*&f=json&token=${ARCGIS_TOKEN}&resultRecordCount=2000" -o data.json
+                                                                                                                echo "Dados atualizados em $(date)"
+                                                                                                                
+                                                                                                                      - name: Commit data
+                                                                                                                              run: |
+                                                                                                                                        git config user.name "github-actions[bot]"
+                                                                                                                                                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                                                                                                                                                            git add data.json
+                                                                                                                                                                      git diff --staged --quiet || git commit -m "Update survey data"
+                                                                                                                                                                                git push

@@ -15,10 +15,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Buscar dados ArcGIS
-        env:
-          API_KEY: ${{ secrets.ARCGIS_TOKEN }}
         run: |
-          curl -s "https://services3.arcgis.com/ba17q0p2zHwzRK3B/arcgis/rest/services/survey123_08566a11039c49e38326d98785c0ee7e_results/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&token=${API_KEY}&resultRecordCount=2000" -o data.json
+          curl -s "https://services3.arcgis.com/ba17q0p2zHwzRK3B/arcgis/rest/services/survey123_08566a11039c49e38326d98785c0ee7e_results/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=2000" -o data.json
+
+          echo "Primeiras linhas do retorno:"
+          head -c 500 data.json
+          echo
 
           if grep -q '"error"' data.json; then
             echo "Erro retornado pela API ArcGIS:"
